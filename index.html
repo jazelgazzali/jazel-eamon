@@ -6,47 +6,145 @@
 <title>Engagement Invitation</title>
 
 <style>
-body { margin:0; font-family:'Cormorant Garamond',serif; background:#f5ebe0; display:flex; justify-content:center;}
-.container { max-width:460px; width:100%; background:#fff;}
-.invite-img { width:100%; display:block;}
-.rsvp-section { padding:20px; background:#f0e4d0;}
-.rsvp-section h2 { text-align:center; letter-spacing:0.2em; font-size:14px; color:#8a6040;}
-input, button { width:100%; padding:10px; margin-top:10px; border:1px solid #cdb898; font-family:inherit;}
-.attending-buttons { display:flex; gap:10px;}
-.att-btn { flex:1; cursor:pointer; background:transparent;}
-.att-btn.selected { background:#c8a96e; color:white;}
-.submit-btn { background:#2a1a12; color:white; letter-spacing:0.1em; cursor:pointer;}
-.thank-you { display:none; text-align:center; padding:20px; font-size:24px; color:#8a6040;}
+body {
+  margin: 0;
+  background: #f5ebe0;
+  display: flex;
+  justify-content: center;
+  font-family: 'Cormorant Garamond', serif;
+}
+
+.container {
+  max-width: 460px;
+  width: 100%;
+  text-align: center;
+}
+
+/* Envelope */
+.envelope {
+  width: 100%;
+  height: 300px;
+  background: #e8d5be;
+  position: relative;
+  cursor: pointer;
+  perspective: 1000px;
+}
+
+.flap {
+  position: absolute;
+  width: 100%;
+  height: 150px;
+  background: #ddc9ac;
+  top: 0;
+  transform-origin: top;
+  transition: transform 1s ease;
+}
+
+.envelope.open .flap {
+  transform: rotateX(180deg);
+}
+
+.invite {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all 0.8s ease;
+}
+
+.invite.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.invite-img {
+  width: 100%;
+  display: block;
+}
+
+.rsvp-section {
+  padding: 20px;
+  background: #f0e4d0;
+}
+
+input, button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  border: 1px solid #cdb898;
+}
+
+.attending-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.att-btn {
+  flex: 1;
+  cursor: pointer;
+}
+
+.att-btn.selected {
+  background: #c8a96e;
+  color: white;
+}
+
+.submit-btn {
+  background: #2a1a12;
+  color: white;
+}
+
+.thank-you {
+  display: none;
+  font-size: 24px;
+  padding: 20px;
+  color: #8a6040;
+}
 </style>
 </head>
 
 <body>
+
 <div class="container">
 
-<img src="With their families.png" class="invite-img">
-
-<div class="rsvp-section">
-<h2>RSVP</h2>
-
-<form id="rsvpForm">
-<input name="name" placeholder="Your Name" required>
-<input name="email" placeholder="Email" required>
-<input name="guests" placeholder="Number of Guests">
-<input type="hidden" id="attendingField">
-
-<div class="attending-buttons">
-<button type="button" class="att-btn" data-value="Yes">Yes</button>
-<button type="button" class="att-btn" data-value="No">No</button>
+<div class="envelope" id="envelope">
+  <div class="flap"></div>
 </div>
 
-<button type="submit" class="submit-btn">Submit</button>
-</form>
+<div class="invite" id="invite">
+  <img src="With their families.png" class="invite-img">
 
-<div class="thank-you">Thank you for your RSVP 💌</div>
+  <div class="rsvp-section">
+    <form id="rsvpForm">
+      <input name="name" placeholder="Your Name" required>
+      <input name="email" placeholder="Email" required>
+      <input name="guests" placeholder="Number of Guests">
+
+      <input type="hidden" id="attendingField">
+
+      <div class="attending-buttons">
+        <button type="button" class="att-btn">Yes</button>
+        <button type="button" class="att-btn">No</button>
+      </div>
+
+      <button type="submit" class="submit-btn">Submit</button>
+    </form>
+
+    <div class="thank-you">Thank you for your RSVP 💌</div>
+  </div>
 </div>
+
 </div>
 
 <script>
+// Envelope open
+document.getElementById("envelope").addEventListener("click", function() {
+  this.classList.add("open");
+  setTimeout(() => {
+    document.getElementById("invite").classList.add("show");
+    this.style.display = "none";
+  }, 800);
+});
+
+// RSVP
 const form = document.getElementById("rsvpForm");
 
 const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScSmLswKwf3TmCF8_ldFnzJPS9Rs-tKLs0Y8HRlZ2Ce3clgKg/formResponse";
@@ -58,12 +156,12 @@ const FIELD_MAP = {
   guests: "entry.1075949889"
 };
 
-const attendingButtons = document.querySelectorAll(".att-btn");
+const buttons = document.querySelectorAll(".att-btn");
 
-attendingButtons.forEach(btn => {
+buttons.forEach(btn => {
   btn.addEventListener("click", () => {
-    document.getElementById("attendingField").value = btn.dataset.value;
-    attendingButtons.forEach(b => b.classList.remove("selected"));
+    document.getElementById("attendingField").value = btn.innerText.trim();
+    buttons.forEach(b => b.classList.remove("selected"));
     btn.classList.add("selected");
   });
 });
@@ -71,19 +169,18 @@ attendingButtons.forEach(btn => {
 form.addEventListener("submit", function(e) {
   e.preventDefault();
 
-  const formData = new FormData();
-
-  formData.append(FIELD_MAP.name, form.querySelector('[name="name"]').value);
-  formData.append(FIELD_MAP.email, form.querySelector('[name="email"]').value);
-  formData.append(FIELD_MAP.attending, document.getElementById("attendingField").value || "");
+  const data = new FormData();
+  data.append(FIELD_MAP.name, form.querySelector('[name="name"]').value);
+  data.append(FIELD_MAP.email, form.querySelector('[name="email"]').value);
+  data.append(FIELD_MAP.attending, document.getElementById("attendingField").value);
 
   const guests = form.querySelector('[name="guests"]').value;
-  if (guests) formData.append(FIELD_MAP.guests, guests);
+  if (guests) data.append(FIELD_MAP.guests, guests);
 
   fetch(GOOGLE_FORM_URL, {
     method: "POST",
     mode: "no-cors",
-    body: formData
+    body: data
   });
 
   form.style.display = "none";
