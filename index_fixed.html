@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Engagement Invitation</title>
+
+<style>
+body { margin:0; font-family:'Cormorant Garamond',serif; background:#f5ebe0; display:flex; justify-content:center;}
+.container { max-width:460px; width:100%; background:#fff;}
+.invite-img { width:100%; display:block;}
+.rsvp-section { padding:20px; background:#f0e4d0;}
+.rsvp-section h2 { text-align:center; letter-spacing:0.2em; font-size:14px; color:#8a6040;}
+input, button { width:100%; padding:10px; margin-top:10px; border:1px solid #cdb898; font-family:inherit;}
+.attending-buttons { display:flex; gap:10px;}
+.att-btn { flex:1; cursor:pointer; background:transparent;}
+.att-btn.selected { background:#c8a96e; color:white;}
+.submit-btn { background:#2a1a12; color:white; letter-spacing:0.1em; cursor:pointer;}
+.thank-you { display:none; text-align:center; padding:20px; font-size:24px; color:#8a6040;}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<img src="With their families.png" class="invite-img">
+
+<div class="rsvp-section">
+<h2>RSVP</h2>
+
+<form id="rsvpForm">
+<input name="name" placeholder="Your Name" required>
+<input name="email" placeholder="Email" required>
+<input name="guests" placeholder="Number of Guests">
+<input type="hidden" id="attendingField">
+
+<div class="attending-buttons">
+<button type="button" class="att-btn" data-value="Yes">Yes</button>
+<button type="button" class="att-btn" data-value="No">No</button>
+</div>
+
+<button type="submit" class="submit-btn">Submit</button>
+</form>
+
+<div class="thank-you">Thank you for your RSVP 💌</div>
+</div>
+</div>
+
+<script>
+const form = document.getElementById("rsvpForm");
+
+const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScSmLswKwf3TmCF8_ldFnzJPS9Rs-tKLs0Y8HRlZ2Ce3clgKg/formResponse";
+
+const FIELD_MAP = {
+  name: "entry.1830940916",
+  email: "entry.1933846328",
+  attending: "entry.993893477",
+  guests: "entry.1075949889"
+};
+
+const attendingButtons = document.querySelectorAll(".att-btn");
+
+attendingButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.getElementById("attendingField").value = btn.dataset.value;
+    attendingButtons.forEach(b => b.classList.remove("selected"));
+    btn.classList.add("selected");
+  });
+});
+
+form.addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  const formData = new FormData();
+
+  formData.append(FIELD_MAP.name, form.querySelector('[name="name"]').value);
+  formData.append(FIELD_MAP.email, form.querySelector('[name="email"]').value);
+  formData.append(FIELD_MAP.attending, document.getElementById("attendingField").value || "");
+
+  const guests = form.querySelector('[name="guests"]').value;
+  if (guests) formData.append(FIELD_MAP.guests, guests);
+
+  fetch(GOOGLE_FORM_URL, {
+    method: "POST",
+    mode: "no-cors",
+    body: formData
+  });
+
+  form.style.display = "none";
+  document.querySelector(".thank-you").style.display = "block";
+});
+</script>
+
+</body>
+</html>
